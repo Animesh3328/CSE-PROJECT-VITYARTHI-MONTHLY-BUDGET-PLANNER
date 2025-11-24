@@ -1,0 +1,134 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class BudgetGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Monthly Budget Planner")
+        self.root.geometry("480x600")
+        self.root.configure(bg="#0e192e")
+
+        # Heading Label
+        title = tk.Label(root, text="Monthly Budget Planner",
+                         font=("Arial", 22, "bold"),
+                         bg="#0e192e", fg="#ffdb4d")
+        title.pack(pady=15)
+
+        frame = tk.Frame(root, bg="#0e192e")
+        frame.pack(pady=10)
+
+        # ----- INPUTS -----
+        self.entries = {}
+
+        # Monthly Income
+        lbl_income = tk.Label(frame, text="Monthly Income (₹):",
+                              font=("Arial", 12), bg="#0e192e", fg="white")
+        lbl_income.pack(anchor="w", padx=20)
+
+        self.income_entry = tk.Entry(frame, font=("Arial", 13), width=30)
+        self.income_entry.pack(pady=5)
+
+        # Saving Percentage
+        lbl_save = tk.Label(frame, text="Saving Percentage (%):",
+                            font=("Arial", 12), bg="#0e192e", fg="white")
+        lbl_save.pack(anchor="w", padx=20)
+
+        self.save_entry = tk.Entry(frame, font=("Arial", 13), width=30)
+        self.save_entry.pack(pady=5)
+
+        # ----- EXPENSE SECTION -----
+        tk.Label(frame, text="Add Expense (Name & Amount):",
+                 font=("Arial", 12, "bold"),
+                 bg="#0e192e", fg="#ffdb4d").pack(pady=10)
+
+        exp_frame = tk.Frame(frame, bg="#0e192e")
+        exp_frame.pack()
+
+        self.expense_name = tk.Entry(exp_frame, width=15, font=("Arial", 12))
+        self.expense_name.grid(row=0, column=0, padx=5)
+
+        self.expense_amount = tk.Entry(exp_frame, width=10, font=("Arial", 12))
+        self.expense_amount.grid(row=0, column=1, padx=5)
+
+        add_btn = tk.Button(exp_frame, text="Add",
+                            font=("Arial", 12, "bold"),
+                            bg="#ffdb4d", fg="black",
+                            command=self.add_expense)
+        add_btn.grid(row=0, column=2, padx=5)
+
+        # List to store expenses
+        self.expenses = []
+
+        # Summary Button
+        calc_btn = tk.Button(root, text="View Summary",
+                             font=("Arial", 14, "bold"),
+                             bg="#ffdb4d", fg="black",
+                             command=self.calculate)
+        calc_btn.pack(pady=20)
+
+        # Output Label
+        self.result_label = tk.Label(root, text="", justify="left",
+                                     bg="#0e192e", fg="white",
+                                     font=("Arial", 12))
+        self.result_label.pack()
+
+    # Add Expense to list
+    def add_expense(self):
+        name = self.expense_name.get().strip()
+        amount = self.expense_amount.get().strip()
+
+        if not name or not amount:
+            messagebox.showwarning("Input Error", "Please enter both name and amount.")
+            return
+
+        try:
+            amount = float(amount)
+        except ValueError:
+            messagebox.showerror("Error", "Enter a valid amount.")
+            return
+
+        self.expenses.append((name, amount))
+        messagebox.showinfo("Added", f"Expense '{name}' added!")
+
+        self.expense_name.delete(0, tk.END)
+        self.expense_amount.delete(0, tk.END)
+
+    # Calculate Summary
+    def calculate(self):
+        try:
+            income = float(self.income_entry.get())
+            save_percent = float(self.save_entry.get())
+
+            savings = income * (save_percent / 100)
+            remaining_after_saving = income - savings
+
+            total_expenses = sum(amount for _, amount in self.expenses)
+            final_balance = remaining_after_saving - total_expenses
+
+            # Prepare summary
+            summary = (
+                "------ Budget Summary ------\n"
+                f"Income: ₹{income:.2f}\n"
+                f"Saving ({save_percent}%): ₹{savings:.2f}\n"
+                f"Balance After Savings: ₹{remaining_after_saving:.2f}\n\n"
+                f"Expenses:\n"
+            )
+
+            for name, amt in self.expenses:
+                summary += f"{name}: ₹{amt:.2f}\n"
+
+            summary += (
+                f"\nTotal Expenses: ₹{total_expenses:.2f}\n"
+                f"Final Balance: ₹{final_balance:.2f}"
+            )
+
+            self.result_label.config(text=summary)
+
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers for income and saving %.")
+
+
+# Run GUI
+root = tk.Tk()
+app = BudgetGUI(root)
+root.mainloop()
